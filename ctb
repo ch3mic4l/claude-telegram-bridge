@@ -132,6 +132,24 @@ get_agents() {
     done
 }
 
+get_next_port() {
+    local max_port=9997
+    for config in "$BRIDGE_DIR/agents"/*/config.env; do
+        [ -f "$config" ] || continue
+        local port
+        port=$(grep -m1 '^NOTIFY_PORT=' "$config" | cut -d= -f2 | tr -d '[:space:]')
+        if [[ "$port" =~ ^[0-9]+$ ]] && [ "$port" -gt "$max_port" ]; then
+            max_port="$port"
+        fi
+    done
+    local candidate=$(( max_port + 1 ))
+    while ss -tlnH "sport = :$candidate" 2>/dev/null | grep -q . || \
+          ss -ulnH "sport = :$candidate" 2>/dev/null | grep -q .; do
+        candidate=$(( candidate + 1 ))
+    done
+    echo "$candidate"
+}
+
 select_from_menu() {
     local prompt="$1"
     shift
@@ -326,19 +344,36 @@ create_agent() {
         return 1
     fi
 
-    read -p "TELEGRAM_ALLOWED_USER (primary user ID): " allowed_user
+    local default_allowed_user default_allowed_users
+    for config in "$BRIDGE_DIR/agents"/*/config.env; do
+        [ -f "$config" ] || continue
+        [ -z "$default_allowed_user" ] && \
+            default_allowed_user=$(grep -m1 '^TELEGRAM_ALLOWED_USER=' "$config" | cut -d= -f2 | tr -d '[:space:]')
+        [ -z "$default_allowed_users" ] && \
+            default_allowed_users=$(grep -m1 '^TELEGRAM_ALLOWED_USERS=' "$config" | cut -d= -f2 | tr -d '[:space:]')
+    done
+
+    local allowed_user_prompt="TELEGRAM_ALLOWED_USER (primary user ID)"
+    [ -n "$default_allowed_user" ] && allowed_user_prompt+=" [$default_allowed_user]"
+    read -p "$allowed_user_prompt: " allowed_user
+    allowed_user="${allowed_user:-$default_allowed_user}"
     if [ -z "$allowed_user" ]; then
         echo "❌ TELEGRAM_ALLOWED_USER is required"
         return 1
     fi
 
-    read -p "TELEGRAM_ALLOWED_USERS (comma-separated extra user IDs, or leave blank): " allowed_users
+    local allowed_users_prompt="TELEGRAM_ALLOWED_USERS (comma-separated extra user IDs, or leave blank)"
+    [ -n "$default_allowed_users" ] && allowed_users_prompt+=" [$default_allowed_users]"
+    read -p "$allowed_users_prompt: " allowed_users
+    allowed_users="${allowed_users:-$default_allowed_users}"
 
     read -p "WORKSPACE_DIR [leave blank to use $agent_dir/workspace]: " workspace_dir
     workspace_dir="${workspace_dir:-$agent_dir/workspace}"
 
-    read -p "NOTIFY_PORT [9998]: " notify_port
-    notify_port="${notify_port:-9998}"
+    local default_port
+    default_port=$(get_next_port)
+    read -p "NOTIFY_PORT [$default_port]: " notify_port
+    notify_port="${notify_port:-$default_port}"
 
     local model_options=("claude-sonnet-4-6" "claude-opus-4-6" "claude-haiku-4-5")
     select_from_menu "MODEL (use ↑↓ arrows, Enter to select):" "${model_options[@]}"
