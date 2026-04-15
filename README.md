@@ -65,6 +65,13 @@ cd claude-telegram-bridge
 The easiest way is `./ctb create <name>`, which prompts for all config values and
 creates `config.env`, `SOUL.md`, `USER.md`, and a `MEMORY.md` template in the workspace.
 
+`NOTIFY_PORT` is assigned automatically: `ctb create` scans all existing `config.env`
+files, takes the highest port found, and increments until it finds a port that is not
+currently in use. You can accept the suggestion or type a different value.
+
+`TELEGRAM_ALLOWED_USER` and `TELEGRAM_ALLOWED_USERS` are pre-filled from the first
+existing `config.env` found — just press Enter to reuse the same user IDs.
+
 To set one up manually:
 
 1. Create `agents/<name>/config.env`:
@@ -74,7 +81,7 @@ TELEGRAM_BOT_TOKEN=...
 TELEGRAM_ALLOWED_USER=...
 TELEGRAM_ALLOWED_USERS=...   # optional, comma-separated
 WORKSPACE_DIR=/path/to/workspace/
-NOTIFY_PORT=9995
+NOTIFY_PORT=10000            # pick a free port not used by any other agent
 MODEL=claude-sonnet-4-6
 ```
 

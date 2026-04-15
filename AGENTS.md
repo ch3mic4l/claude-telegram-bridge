@@ -42,8 +42,12 @@ Three async components wired together in `run.py:TelegramBridge`:
 
 The fastest path is `./ctb create <name>` — it prompts for all config values (with an arrow-key model selector), then walks through SOUL.md and USER.md field by field, and writes a MEMORY.md template. All identity fields are optional.
 
+`NOTIFY_PORT` is assigned automatically: `ctb create` scans all existing `config.env` files, takes the highest port found, and keeps incrementing until it finds a port not currently in use (checked via `ss`). The suggested value can be accepted or overridden.
+
+`TELEGRAM_ALLOWED_USER` and `TELEGRAM_ALLOWED_USERS` are pre-filled from the first existing `config.env` found. Press Enter to reuse the same values, or type to override.
+
 To add one manually:
-1. Create `agents/<name>/config.env` (copy from `config.env.example`). Required keys: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_USER`, `WORKSPACE_DIR`, `NOTIFY_PORT`.
+1. Create `agents/<name>/config.env`. Required keys: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_USER`, `WORKSPACE_DIR`, `NOTIFY_PORT` (pick a free port not used by any other agent).
 2. Populate workspace files (`SOUL.md`, `USER.md`, `MEMORY.md`) in `WORKSPACE_DIR`.
 3. Optionally add `agents/<name>/prompt_builder.py` with a `PromptBuilder` class — `run.py` dynamically imports it and falls back to `bridge/prompt_builder.py` if absent.
 4. `./ctb start <name>`
