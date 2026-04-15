@@ -1,0 +1,17 @@
+# Ares Telegram Bridge Dependencies
+
+# Core Agent SDK for Claude interactions
+claude-agent-sdk>=1.0.0
+
+# HTTP client for Telegram API calls
+httpx>=0.24.0
+
+# Async HTTP server for notifications
+aiohttp>=3.8.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Development and debugging (optional)
+# pytest>=7.0.0
+# pytest-asyncio>=0.21.0

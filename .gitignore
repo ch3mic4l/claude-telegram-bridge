@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+agents/*/bridge.log
+agents/*/bridge.pid
+agents/*/session_state.json
+agents/*/config.env
+bridge/media/*
+!bridge/media/.gitkeep
+*.sqlite
+.env
